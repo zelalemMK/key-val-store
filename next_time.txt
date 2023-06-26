@@ -1,0 +1,7 @@
+1. Handle restart:
+    - read from the file first
+2. check the rount if its serving from the file
+3. stats;
+    - time between fetching between file and local varliable
+4. Think about scalablity and running it in multiple servers
+5. GET: loadbalancing
