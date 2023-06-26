@@ -34,6 +34,7 @@ func main() {
 	r.Get("/", home)
 	r.Get("/key/{key}", Get)
 	r.Post("/key/{key}", Set)
+	r.Delete("/key/{key}", Delete)
 
 	// get port from env
 
@@ -72,4 +73,9 @@ func Set(w http.ResponseWriter, r *http.Request) {
 
 	key_val[key] = bodyString
 	// w.Write([]byte(key))
+}
+
+func Delete(w http.ResponseWriter, r *http.Request) {
+	key := chi.URLParam(r, "key")
+	delete(key_val, key)
 }
