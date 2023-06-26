@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -10,6 +12,8 @@ import (
 )
 
 var serverPort string
+
+var key_val = make(map[string]string) // for now, we will handle complex values
 
 const url = "http://localhost"
 
@@ -28,6 +32,8 @@ func main() {
 	r.Use(middleware.Recoverer)
 
 	r.Get("/", home)
+	r.Get("/key/{key}", Get)
+	r.Post("/key/{key}", Set)
 
 	// get port from env
 
@@ -40,4 +46,30 @@ func main() {
 
 func home(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hello World"))
+}
+
+// r.Get("/key/{key}")
+func Get(w http.ResponseWriter, r *http.Request) {
+	key := chi.URLParam(r, "key")
+	value, ok := key_val[key]
+	if !ok {
+		w.Write([]byte("Key not found"))
+		return
+	}
+
+	w.Write([]byte(value))
+}
+
+func Set(w http.ResponseWriter, r *http.Request) {
+	key := chi.URLParam(r, "key")
+	fmt.Println(key)
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
+
+	bodyString := string(body)
+
+	key_val[key] = bodyString
+	// w.Write([]byte(key))
 }
