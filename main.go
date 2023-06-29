@@ -40,7 +40,7 @@ func main() {
 	// read from the file, if it exsists and add it into th key-val
 	// if it does not exist, create it using the saveFile func
 
-	file, err := os.OpenFile(StoragePath+"/keyVal.json", os.O_RDONLY|os.O_CREATE|os.O_APPEND, 0666)
+	file, err := os.OpenFile(StoragePath+"/keyVal.json", os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
 		log.Fatalf("Failed to open file: %v", err)
 	}
@@ -49,6 +49,8 @@ func main() {
 	// decode the json into the map
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&key_val)
+	// remove everything from the file
+	file.Truncate(0)
 	if err != nil {
 		log.Fatalf("Failed to decode data: %v", err)
 	}
@@ -74,6 +76,7 @@ func main() {
 		<-signalChan
 		fmt.Println("Received an interrupt, stopping services...")
 		saveFile(file, key_val)
+		fmt.Println("saved file")
 		os.Exit(0)
 	}()
 
