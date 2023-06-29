@@ -63,12 +63,6 @@ func main() {
 		os.Exit(0)
 	}()
 
-	// when the program ends, save the varliable into a file/localdisc as json
-	//check if program has been terminated
-	// worry about if the server
-
-	// https://us04web.zoom.us/j/73294374645?pwd=PajErocVbvTQFI0mnJYiAm4osZanDj.1
-	// Koy ande. OK
 	for {
 	}
 
