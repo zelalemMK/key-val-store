@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 
 	"github.com/go-chi/chi"
@@ -17,7 +16,7 @@ import (
 
 var (
 	serverPort  string
-	StoragePath = "/tmp/keyVal"
+	StoragePath = "./keyVal"
 	key_val     = make(map[string]string) // for now, we will handle complex values
 )
 
@@ -38,6 +37,21 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	// read from the file, if it exsists and add it into th key-val
+	// if it does not exist, create it using the saveFile func
+
+	file, err := os.OpenFile(StoragePath+"/keyVal.json", os.O_RDONLY|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("Failed to open file: %v", err)
+	}
+	defer file.Close()
+
+	// decode the json into the map
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&key_val)
+	if err != nil {
+		log.Fatalf("Failed to decode data: %v", err)
+	}
 
 	r.Get("/", home)
 	r.Get("/key/{key}", Get)
@@ -59,7 +73,7 @@ func main() {
 	go func() {
 		<-signalChan
 		fmt.Println("Received an interrupt, stopping services...")
-		saveFile(key_val)
+		saveFile(file, key_val)
 		os.Exit(0)
 	}()
 
@@ -102,28 +116,9 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	delete(key_val, key)
 }
 
-func saveFile(kv map[string]string) {
-	// First check if the folder exists and create it if it is missing.
-	if _, err := os.Stat(StoragePath); os.IsNotExist(err) {
-		err = os.MkdirAll(StoragePath, 0755)
-		if err != nil {
-			log.Fatalf("Failed to create storage path: %v", err)
-		}
-	}
-
-	var f *os.File
-	if _, err := os.Stat(filepath.Join(StoragePath, "keyVal.json")); os.IsNotExist(err) {
-		f, err = os.Create(StoragePath + "/keyVal.json")
-		if err != nil {
-			log.Fatalf("Failed to create storage path: %v", err)
-		}
-
-	}
-	defer f.Close()
-
-	//encode the map int json
+func saveFile(f *os.File, key_val map[string]string) {
 	//write the json into the file
-	encodedData, err := json.Marshal(kv)
+	encodedData, err := json.Marshal(key_val)
 	if err != nil {
 		log.Fatalf("Failed to encode data: %v", err)
 	}
